@@ -5,6 +5,7 @@ import Common.Constants;
 import Common.MessageUtils.ServerMessage;
 import Common.MessageUtils.ServerMessageType;
 import Common.SharedFile;
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 import java.net.Socket;
 import java.nio.file.FileSystems;
@@ -22,32 +23,34 @@ public class JavaChatClient {
 
         System.out.println("Enter username: ");
         user.setUsername(scanner.nextLine());
-
-        String ip = Constants.SERVER_IP;
-        System.out.println("Enter server ip [leave blank for default]: ");
-        String line = scanner.nextLine();
-        if (!line.isEmpty()) ip = line;
-
         fth.startListening();
 
-        // Connect to socket
-        System.out.println("Connecting...");
-        ServerConnection connection;
-        try {
-            Socket socket = new Socket(ip, Constants.PORT);
-            connection = new ServerConnection(socket);
-            System.out.println("Connected!");
-            connection.sendMessage(ClientMessageBuilder.buildSetUsername(user.getUsername()));
-        } catch (Exception e) {
-            System.out.println("Could not connect to server");
-            return;
-        }
-        while (connection.isConnected()) {
+        ServerConnection connection = null;
+        while (true) {
             try {
                 System.out.print("> ");
                 String[] command = scanner.nextLine().split(" ");
                 switch (command[0]) {
+                    case "connect":
+                        System.out.println("Connecting...");
+                        String ip = Constants.SERVER_IP;
+                        if (command.length == 2)
+                            ip = command[1];
+                        try {
+                            Socket socket = new Socket(ip, Constants.PORT);
+                            connection = new ServerConnection(socket);
+                            System.out.println("Connected!");
+                            connection.sendMessage(ClientMessageBuilder.buildSetUsername(user.getUsername()));
+                        } catch (Exception e) {
+                            System.out.println("Could not connect to server");
+                        }
+
+                        break;
                     case "publish":
+                        if (connection == null || !connection.isConnected()) {
+                            System.out.println("Not connected!");
+                            break;
+                        }
                         try {
                             Path path = FileSystems.getDefault().getPath(command[1]);
                             List<String> filenames = new FileManager().getFilenames(path, Constants.RECURSE);
@@ -60,6 +63,11 @@ public class JavaChatClient {
 
                         break;
                     case "search":
+                        if (connection == null || !connection.isConnected()) {
+                            System.out.println("Not connected!");
+                            break;
+                        }
+
                         String query = command[1];
                         connection.sendMessage(ClientMessageBuilder.buildSearch(query));
                         ServerMessage result = connection.getMessage();
@@ -72,6 +80,11 @@ public class JavaChatClient {
 
                         break;
                     case "fetch":
+                        if (connection == null || !connection.isConnected()) {
+                            System.out.println("Not connected!");
+                            break;
+                        }
+
                         int id;
                         if (Settings.getPublishedPath() == null) {
                             System.out.println("You have to publish first!");
@@ -93,17 +106,24 @@ public class JavaChatClient {
 
                         break;
                     case "disconnect":
+                        if (connection == null || !connection.isConnected()) {
+                            System.out.println("Not connected!");
+                            break;
+                        }
+
                         connection.sendMessage(ClientMessageBuilder.buildDisconnect());
                         connection.disconnect();
+                        connection = null;
 
                         break;
                     default:
                         System.out.println("Unrecognized command, try again.");
-
                         break;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                if (connection != null)
+                    connection.disconnect();
             }
         }
     }

@@ -23,12 +23,17 @@ public class FileTransferHandler {
             System.out.println("Got a request to transfer file!");
             try {
                 GenericConnection<String, byte[]> connection = new GenericConnection<>(s);
-                String filename = connection.getMessage();
-                Path path = Settings.getPublishedPath().resolve(Paths.get(filename));
-                System.out.println("Sending file " + path.toString());
-                connection.sendMessage(Files.readAllBytes(path));
-            } catch (Exception e) {
-                e.printStackTrace();
+                try {
+                    String filename = connection.getMessage();
+                    Path path = Settings.getPublishedPath().resolve(Paths.get(filename));
+                    System.out.println("Sending file " + path.toString());
+                    connection.sendMessage(Files.readAllBytes(path));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    connection.sendMessage(new byte[0]);
+                }
+            } catch (IOException e) {
+                System.out.println("Partner offline!");
             }
         });
     }
@@ -46,6 +51,10 @@ public class FileTransferHandler {
     }
 
     public void fetchFile(String ip, String filename) {
+        if (ip == null || filename == null) {
+            System.out.println("File not found");
+            return;
+        }
         System.out.println("IP: " + ip);
         System.out.println("filename: " + filename);
 
@@ -54,6 +63,11 @@ public class FileTransferHandler {
             GenericConnection<byte[], String> connection = new GenericConnection<>(socket);
             connection.sendMessage(filename);
             byte[] result = connection.getMessage();
+            if (result.length == 0) {
+                System.out.println("Transfer failed!");
+                return;
+            }
+
             Path path = Settings.getPublishedPath().resolve(Paths.get(filename));
             Files.write(path, result);
             System.out.println("File " + path + " created (" + result.length + " bytes)");

@@ -15,7 +15,6 @@ public class ServerConnection extends GenericConnection<ServerMessage, ClientMes
 
     public ServerConnection(Socket s) throws IOException {
         super(s);
-        ip = s.getInetAddress().getHostName();
     }
 
     @Override

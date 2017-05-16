@@ -5,9 +5,7 @@ import Common.MessageUtils.ClientMessage;
 import Common.SharedFile;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -18,11 +16,13 @@ public class ClientManager extends Thread {
     private Queue<ClientConnection> connections;
     private int sleepTimeMs;
     private FileManager fileManager;
+    private Map<String, ClientConnection> ipMap;
 
     private ClientManager() {
         this.sleepTimeMs = Constants.CLIENT_MANAGER_SLEEP_TIME;
         this.fileManager = FileManager.getInstance();
         connections = new ConcurrentLinkedQueue<>();
+        ipMap = new HashMap<>();
     }
 
     private static ClientManager instance;
@@ -105,6 +105,13 @@ public class ClientManager extends Thread {
     }
 
     public void addClient(ClientConnection connection) {
+        String ip = connection.getIp();
+        ClientConnection old = ipMap.getOrDefault(ip, null);
+        if (old != null) {
+            System.out.println("Disconnecting old instance of " + ip);
+            old.disconnect();
+        }
         connections.add(connection);
+        ipMap.put(ip, connection);
     }
 }

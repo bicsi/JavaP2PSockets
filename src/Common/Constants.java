@@ -9,4 +9,5 @@ public class Constants {
     public static final boolean RECURSE = true;
     public static final int CLIENT_MANAGER_SLEEP_TIME = 100;
     public static final int FILE_TRANSFER_PORT = 9996;
+    public static final int REACHABLE_TIMEOUT = 3000;
 }
