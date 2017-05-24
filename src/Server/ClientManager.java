@@ -5,6 +5,10 @@ import Common.MessageUtils.ClientMessage;
 import Common.SharedFile;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -42,12 +46,18 @@ public class ClientManager extends Thread {
                 if (!currentClient.isConnected()) continue;
 
                 try {
-                    if (currentClient.hasMessage()) {
+                    while (currentClient.hasMessage()) {
                         ClientMessage message = currentClient.getMessage();
                         processMessage(currentClient, message);
                     }
-                    // Throw client back to the queue
-                    connections.add(currentClient);
+
+                    if (LocalDateTime.now().minusNanos(1000000L * Constants.REACHABLE_TIMEOUT).compareTo(
+                            currentClient.getLastHeartbeat()) < 0) {
+                        // Throw client back to the queue
+                        connections.add(currentClient);
+                    } else {
+                        System.out.println("Client " + currentClient + " timed out.");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     System.out.println("Disconnecting client...");
@@ -72,9 +82,16 @@ public class ClientManager extends Thread {
         Serializable arg = message.arg;
         try {
             switch (message.type) {
-                case MSG_SET_USERNAME:
-                    System.out.println(currentClient + " set its name to " + arg);
-                    currentClient.setUsername((String) arg);
+                case MSG_HEARTBEAT:
+                    currentClient.beat();
+                    break;
+                case MSG_INIT:
+                    String[] args = ((String) arg).split(":");
+                    String name = args[0];
+                    int port = Integer.parseInt(args[1]);
+
+                    System.out.println(currentClient + " initialized as " + arg);
+                    currentClient.initialize(name, port);
                     break;
                 case MSG_PUBLISH:
                     List<String> filenames = (List<String>) arg;
@@ -93,6 +110,7 @@ public class ClientManager extends Thread {
 
                     currentClient.sendMessage(ServerMessageBuilder.buildOwnerIp(
                             owner == null ? null : owner.getIp(),
+                            owner == null ? -1 : owner.getPort(),
                             file == null ? null : file.path));
                     break;
                 case MSG_DISCONNECT:

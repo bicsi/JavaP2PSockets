@@ -50,16 +50,16 @@ public class FileTransferHandler {
         return instance;
     }
 
-    public void fetchFile(String ip, String filename) {
-        if (ip == null || filename == null) {
+    public void fetchFile(String ip, int port, String filename) {
+        if (ip == null || port == -1 || filename == null) {
             System.out.println("File not found");
             return;
         }
-        System.out.println("IP: " + ip);
+        System.out.println("IP: " + ip + ":" + port);
         System.out.println("filename: " + filename);
 
         try {
-            Socket socket = new Socket(ip, Constants.FILE_TRANSFER_PORT);
+            Socket socket = new Socket(ip, port);
             GenericConnection<byte[], String> connection = new GenericConnection<>(socket);
             connection.sendMessage(filename);
             byte[] result = connection.getMessage();

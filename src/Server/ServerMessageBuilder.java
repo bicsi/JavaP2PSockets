@@ -17,10 +17,11 @@ public class ServerMessageBuilder {
         return new ServerMessage(ServerMessageType.MSG_SEARCH_RESULT, (Serializable) result);
     }
 
-    public static ServerMessage buildOwnerIp(String ip, String filename) {
+    public static ServerMessage buildOwnerIp(String ip, int port, String filename) {
         Map<String, String> map = new HashMap<>();
         map.put("ip", ip);
         map.put("filename", filename);
+        map.put("port", ((Integer) port).toString());
 
         return new ServerMessage(ServerMessageType.MSG_OWNER_IP, (Serializable) map);
     }

@@ -5,7 +5,6 @@ import Common.Constants;
 import Common.MessageUtils.ServerMessage;
 import Common.MessageUtils.ServerMessageType;
 import Common.SharedFile;
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 import java.net.Socket;
 import java.nio.file.FileSystems;
@@ -23,6 +22,8 @@ public class JavaChatClient {
 
         System.out.println("Enter username: ");
         user.setUsername(scanner.nextLine());
+        System.out.println("Enter file transfer port: ");
+        Constants.FILE_TRANSFER_PORT = scanner.nextInt();
         fth.startListening();
 
         ServerConnection connection = null;
@@ -40,7 +41,8 @@ public class JavaChatClient {
                             Socket socket = new Socket(ip, Constants.PORT);
                             connection = new ServerConnection(socket);
                             System.out.println("Connected!");
-                            connection.sendMessage(ClientMessageBuilder.buildSetUsername(user.getUsername()));
+                            connection.sendMessage(ClientMessageBuilder.buildInit(user.getUsername(),
+                                    Constants.FILE_TRANSFER_PORT));
                         } catch (Exception e) {
                             System.out.println("Could not connect to server");
                         }
@@ -102,7 +104,7 @@ public class JavaChatClient {
                             throw new Exception("Server message type is of wrong format");
 
                         Map<String, String> map = (Map<String, String>) result.arg;
-                        fth.fetchFile(map.get("ip"), map.get("filename"));
+                        fth.fetchFile(map.get("ip"), Integer.parseInt(map.get("port")), map.get("filename"));
 
                         break;
                     case "disconnect":

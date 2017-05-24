@@ -25,10 +25,10 @@ public class GenericConnection<TMessageIn, TMessageOut> implements Closeable {
         return ret > 0;
     }
 
-    public TMessageIn getMessage() throws IOException, ClassNotFoundException {
+    public synchronized TMessageIn getMessage() throws IOException, ClassNotFoundException {
         return (TMessageIn) inputStream.readObject();
     }
-    public void sendMessage(TMessageOut message) throws IOException {
+    public synchronized void sendMessage(TMessageOut message) throws IOException {
         outputStream.writeObject(message);
         outputStream.flush();
     }

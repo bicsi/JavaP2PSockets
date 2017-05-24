@@ -10,8 +10,9 @@ import java.util.List;
  * Created by lucian on 15.05.2017.
  */
 public class ClientMessageBuilder {
-    public static ClientMessage buildSetUsername(String username) {
-        return new ClientMessage(ClientMessageType.MSG_SET_USERNAME, username);
+    public static ClientMessage buildInit(String username, int port) {
+        return new ClientMessage(ClientMessageType.MSG_INIT,
+                username + ":" + ((Integer) port).toString());
     }
 
     public static ClientMessage buildDisconnect() {
