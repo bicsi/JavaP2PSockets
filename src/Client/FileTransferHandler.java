@@ -69,8 +69,13 @@ public class FileTransferHandler {
             }
 
             Path path = Settings.getPublishedPath().resolve(Paths.get(filename));
-            Files.write(path, result);
-            System.out.println("File " + path + " created (" + result.length + " bytes)");
+            if (!Files.exists(path)) {
+                Files.createDirectories(path.getParent());
+                Files.createFile(path);
+                Files.write(path, result);
+                System.out.println("File " + path + " created (" + result.length + " bytes)");
+            } else System.out.println("File " + path + " already exists!");
+
         } catch (Exception e) {
             e.printStackTrace();
         }

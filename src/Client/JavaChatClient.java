@@ -18,12 +18,13 @@ public class JavaChatClient {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         Settings user = new Settings();
-        FileTransferHandler fth = FileTransferHandler.getInstance();
 
         System.out.println("Enter username: ");
         user.setUsername(scanner.nextLine());
         System.out.println("Enter file transfer port: ");
         Constants.FILE_TRANSFER_PORT = scanner.nextInt();
+
+        FileTransferHandler fth = FileTransferHandler.getInstance();
         fth.startListening();
 
         ServerConnection connection = null;

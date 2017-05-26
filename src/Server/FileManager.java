@@ -43,6 +43,7 @@ public class FileManager {
         for (String path : files) {
             SharedFile file = new SharedFile(owner.toString(), path, ++filesCount);
             allFiles.add(file);
+            allFiles.add(file);
             newFiles.add(file);
             ownerMap.put(file.fileId, owner);
             idMap.put(file.fileId, file);
@@ -53,21 +54,18 @@ public class FileManager {
     }
 
     public List<SharedFile> queryFiles(String queryString) {
-        cleanUp();
-
         List<SharedFile> ret = new ArrayList<>();
         for (SharedFile file : allFiles) {
             String filename = Paths.get(file.path).getFileName().toString();
+            ClientConnection owner = ownerMap.get(file.fileId);
+            if (!owner.isConnected()) {
+                clearFiles(owner);
+            }
+
             if (filename.contains(queryString))
                 ret.add(file);
         }
         return ret;
-    }
-
-    private void cleanUp() {
-        owners.stream()
-                .filter(owner -> !owner.isConnected())
-                .forEach(this::clearFiles);
     }
 
     ClientConnection getOwner(int id) {

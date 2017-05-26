@@ -20,13 +20,13 @@ public class ClientManager extends Thread {
     private Queue<ClientConnection> connections;
     private int sleepTimeMs;
     private FileManager fileManager;
-    private Map<String, ClientConnection> ipMap;
+//    private Map<String, ClientConnection> ipMap;
 
     private ClientManager() {
         this.sleepTimeMs = Constants.CLIENT_MANAGER_SLEEP_TIME;
         this.fileManager = FileManager.getInstance();
         connections = new ConcurrentLinkedQueue<>();
-        ipMap = new HashMap<>();
+//        ipMap = new HashMap<>();
     }
 
     private static ClientManager instance;
@@ -123,13 +123,14 @@ public class ClientManager extends Thread {
     }
 
     public void addClient(ClientConnection connection) {
-        String ip = connection.getIp();
-        ClientConnection old = ipMap.getOrDefault(ip, null);
-        if (old != null) {
-            System.out.println("Disconnecting old instance of " + ip);
-            old.disconnect();
-        }
+//        String ip = connection.getIp();
+//        int port = connection.getPort();
+//        ClientConnection old = ipMap.getOrDefault(ip + ":" + port, null);
+//        if (old != null) {
+//            System.out.println("Disconnecting old instance of " + ip);
+//            old.disconnect();
+//        }
         connections.add(connection);
-        ipMap.put(ip, connection);
+//        ipMap.put(ip + ":" + port, connection);
     }
 }
